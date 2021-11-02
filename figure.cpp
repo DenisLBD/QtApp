@@ -6,27 +6,24 @@
 #include <QApplication>
 #include <QMenu>
 #include <QMenuBar>
+#include <QFile>
+#include <QTextStream>
 
 ListWidget::ListWidget(QWidget *parent)
     : QWidget(parent)
 {
-
-
 
   QVBoxLayout *vbox = new QVBoxLayout(this); //поменял местами this
   vbox->setSpacing(10);
 
   QHBoxLayout *hbox = new QHBoxLayout(); //
 
-  lw = new QListWidget(this);
-  lw->addItem("The Omen");
-  lw->addItem("The Exorcist");
-  lw->addItem("Notes on a scandal");
-  lw->addItem("Fargo");
-  lw->addItem("Capote");
-
   QString sPoints = "Points:";
   QString sNumPoints = "0";
+
+  text = "";
+
+  lw = new QLabel(text, this);
 
   points = new QLabel(sPoints, this);
   numPoints = new QLabel(sNumPoints, this);
@@ -44,13 +41,15 @@ ListWidget::ListWidget(QWidget *parent)
   QAction *open = new QAction(openpix, "&Open", this);
   QAction *save = new QAction(savepix, "&Save", this);
 
-  // А здесь мы задаем сочетание горячих клавиш CTRL+Q, которое будет выполнять действие Quit (Выход)
+  // А здесь мы задаем сочетание горячих клавиш CTRL+S, которое будет выполнять действие Save
   save->setShortcut(tr("CTRL+S"));
 
   // В некоторых средах значки меню по умолчанию не отображаются, поэтому мы можем попробовать отключить атрибут Qt::AA_DontShowIconsInMenus
   qApp->setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
-  //connect(quit, &QAction::triggered, qApp, &QApplication::quit);
+  connect(save, &QAction::triggered, this, &ListWidget::saveFile);
+  connect(open, &QAction::triggered, this, &ListWidget::openFile);
+
 
   QMenuBar* menuBar = new QMenuBar();
   QMenu *fileMenu = new QMenu("&File");
@@ -79,7 +78,7 @@ ListWidget::ListWidget(QWidget *parent)
   hbox1->addWidget(numPoints);
 
   vbox2->setSpacing(3);
-  vbox2->addStretch(1);
+  vbox2->addStretch(20);
   vbox2->addLayout(hbox1);
   vbox2->addStretch(1);
   vbox2->addWidget(showGraph);
@@ -97,17 +96,107 @@ ListWidget::ListWidget(QWidget *parent)
 
 }
 
-void ListWidget::clearItem() { //was add
+void ListWidget::saveFile()
+{
+    QTextStream out(stdout);
+    QString filename = "C:\\Qt\\Apps\\QtApp\\save.txt";
+    QString textToSave, frst, scnd;
+    QFile file(filename);
 
-  QString c_text = QInputDialog::getText(this, "Item", "Enter new item");
-  QString s_text = c_text.simplified();
+    if (file.open(QIODevice::WriteOnly))
+    {
+        QTextStream out(&file);
 
-  if (!s_text.isEmpty()) {
+        for (auto iter = listOfCoordinates.begin(); iter != listOfCoordinates.end(); ++iter)
+        {
+            textToSave = frst.setNum(iter->first) + ',' + scnd.setNum(iter->second) + ' ';
+            if (listOfCoordinates.size() % 10 == 0 && listOfCoordinates.size() > 0)
+                textToSave += '\n';
 
-    lw->addItem(s_text);
-    int r = lw->count() - 1;
-    lw->setCurrentRow(r);
-  }
+            out << textToSave;
+        }
+    }
+    else
+        qWarning("Can't save file");
+
+    file.close();
+}
+
+void ListWidget::openFile()
+{
+    QFile file("C:\\Qt\\Apps\\QtApp\\save.txt");
+
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qWarning("Can't open file for reading");
+        return;
+    }
+
+    text = "";
+
+    QList<std::pair<int, int>> anotherList;
+
+    QTextStream input(&file);
+
+    while (!input.atEnd())
+    {
+        QString line = input.readLine();
+        line = line.simplified();
+
+        QString tmp = "";
+        int i = 0;
+
+        //проверка правильности записи координат в файле
+        while (i < line.length())
+        {
+            while (line[i] != ' ')
+            {
+                tmp.push_back(line[i]);
+                i++;
+                if (line.length() == i)
+                    break;
+            }
+
+            Coordinates *fileCoord = new Coordinates(tmp);
+
+            if (fileCoord->CheckCoord())
+            {
+                tmp.push_front("(");
+                tmp.push_back(") ");
+
+                anotherList.push_back(fileCoord->GetCoord());
+
+                if (anotherList.size() % 10 == 0 && anotherList.size() > 0)
+                    text += '\n';
+
+                text += tmp;
+                tmp = "";
+                i++;
+                delete fileCoord;
+            }
+            else
+            {
+                qWarning("Incorrect coordinates in file");
+                delete fileCoord;
+                anotherList.clear();
+                return;
+            }
+        }
+
+        text += '\n';
+    }
+
+    listOfCoordinates.clear();
+    listOfCoordinates = anotherList;
+    anotherList.clear();
+
+    int iNumPoints = listOfCoordinates.size();
+    QString sNumPoints;
+    sNumPoints.setNum(iNumPoints);
+
+    numPoints->setText(sNumPoints);
+    lw->setText(text);
+    file.close();
 }
 
 void ListWidget::addItem()
@@ -123,32 +212,40 @@ void ListWidget::addItem()
       if (xy->CheckCoord())
       {
           s_text.push_front("(");
-          s_text.push_back(")");
+          s_text.push_back(") ");
 
-          lw->addItem(s_text);
-          int r = lw->count() - 1;
-          lw->setCurrentRow(r);
+          if (listOfCoordinates.size() % 10 == 0 && listOfCoordinates.size() > 0)
+              text += '\n';
+
+          text += s_text;
+
+          listOfCoordinates.push_back(xy->GetCoord());
+
+          int iNumPoints = listOfCoordinates.size();
+          QString sNumPoints;
+          sNumPoints.setNum(iNumPoints);
+
+          lw->setText(text);
+          numPoints->setText(sNumPoints);
       }
+      else
+          qWarning("Can't add coordinate");
 
+      delete xy;
     }
 }
 
-void ListWidget::removeItem() {
-
-  int r = lw->currentRow();
-
-  if (r != -1) {
-
-    QListWidgetItem *item = lw->takeItem(r);
-    delete item;
-  }
+void ListWidget::clearItem()
+{
+    listOfCoordinates.clear();
+    text = "";
+    lw->setText("");
+    numPoints->setText("0");
 }
 
-void ListWidget::showItems(){ //was remove all
+void ListWidget::showItems()
+{
 
-  if (lw->count() != 0)
-  {
-    lw->clear();
-  }
+
 }
 
