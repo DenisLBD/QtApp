@@ -45,5 +45,37 @@ bool Coordinates::CheckCoord()
     if (i != coord.length())
         return false;
 
+    x_coord = "";
+    y_coord = "";
+
     return true;
+}
+
+std::pair<int, int> Coordinates::GetCoord()
+{
+    int i = 0;
+    while (coord[i].isDigit())
+    {
+        x_coord.push_back(coord[i]);
+        i++;
+    }
+
+    i++;
+
+    while (coord[i].isDigit())
+    {
+        y_coord.push_back(coord[i]);
+        i++;
+        if (coord.length() == i)
+            break;
+    }
+
+    int intXc = x_coord.toInt();
+    int intYc = y_coord.toInt();
+
+    std::pair<int, int> pair;
+
+    pair = std::make_pair(intXc, intYc);
+
+    return pair;
 }
