@@ -1,5 +1,3 @@
-#include <QPainter>
-#include <QList>
 #include "paint.h"
 
 Frame::Frame(QList<std::pair<int, int>> listOfCoord, QWidget *parent) : QFrame(parent)
@@ -18,6 +16,9 @@ void Frame::drawLines ()
     QPainter qp(this);
     QPen pen (Qt::black, 1, Qt::SolidLine);
     qp.setPen(pen);
+
+    qp.translate(0, 400);
+    qp.scale(1, -1);
 
     auto iter2 = CoordList.begin();
     ++iter2;
