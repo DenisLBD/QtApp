@@ -1,5 +1,5 @@
 #include "logic.h"
-#include <string>
+#include <QList>
 
 Coordinates::Coordinates (QString str)
 {
@@ -78,4 +78,32 @@ std::pair<int, int> Coordinates::GetCoord()
     pair = std::make_pair(intXc, intYc);
 
     return pair;
+}
+
+void Coordinates::removeCoords(QList<std::pair<int, int>> &listOfCoord)
+{
+    bool flag = false; //лежит ли точка на прямой
+    double k = INT32_MAX;
+    auto iter2 = listOfCoord.begin();
+    ++iter2;
+
+    for (auto iter1 = listOfCoord.begin(); iter2 != listOfCoord.end(); ++iter1)
+    {
+        if (std::abs(k - (iter1->second - iter2->second)*1.0/(iter1->first - iter2->first)) < 0.00001)
+            flag = true;
+        else
+            flag = false;
+
+        if (!flag)
+        {
+            k = (iter1->second - iter2->second)*1.0/(iter1->first - iter2->first);
+            ++iter2;
+        }
+        else
+        {
+            listOfCoord.removeAt(listOfCoord.indexOf(iter1));
+            iter1 = iter2;
+            ++iter2;
+        }
+    }
 }
