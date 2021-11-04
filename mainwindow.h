@@ -2,17 +2,18 @@
 
 #include <QWidget>
 #include <QPushButton>
-#include <QListWidget>
+#include <QMenuBar>
 #include <QLabel>
-#include <QList>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 
-class ListWidget : public QWidget {
+class MainWindow : public QWidget {
 
   Q_OBJECT
 
   public:
-    ListWidget(QWidget *parent = 0);
+    MainWindow(QWidget *parent = 0);
 
   private slots:
     void clearItem();
@@ -22,13 +23,28 @@ class ListWidget : public QWidget {
     void openFile();
 
   private:
+    QVBoxLayout *vbox;
+    QVBoxLayout *vbox1;
+    QVBoxLayout *vbox2;
+    QHBoxLayout *hbox;
+    QHBoxLayout *hbox1;
+
+    QAction *open;
+    QAction *save;
+
+    QMenuBar* menuBar;
+    QMenu* fileMenu;
+
     QLabel *lw;
     QLabel *numPoints;
     QLabel *points;
+
     QPushButton *clear;
     QPushButton *add;
     QPushButton *showGraph;
+
     QString text;
+
     QList<std::pair<int, int>> listOfCoordinates;
 
 };
