@@ -12,6 +12,8 @@ private:
 public:
     Coordinates(QString str);
     bool CheckCoord();
+    std::pair<int, int> GetCoord();
+    void removeCoords (QList<std::pair<int, int>>& listOfCoord);
 
 };
 
