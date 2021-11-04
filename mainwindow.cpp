@@ -1,107 +1,106 @@
 #include "mainwindow.h"
 #include "logic.h"
 #include "paint.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+
 #include <QInputDialog>
 #include <QApplication>
-#include <QMenu>
-#include <QMenuBar>
 #include <QFile>
 #include <QTextStream>
 
-ListWidget::ListWidget(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
 
-  QVBoxLayout *vbox = new QVBoxLayout(this); //поменял местами this
-  vbox->setSpacing(10);
+    vbox = new QVBoxLayout(this);
+    vbox->setSpacing(10);
 
-  QHBoxLayout *hbox = new QHBoxLayout(); //
+    hbox = new QHBoxLayout();
 
-  QString sPoints = "Points:";
-  QString sNumPoints = "0";
+    QString sPoints = "Points:";
+    QString sNumPoints = "0";
 
-  text = "";
+    text = "";
 
-  lw = new QLabel(text, this);
-  lw->setStyleSheet("QLabel {background-color: white}");
+    lw = new QLabel(text, this);
+    lw->setStyleSheet("QLabel {background-color: white}");
 
-  points = new QLabel(sPoints, this);
-  numPoints = new QLabel(sNumPoints, this);
+    points = new QLabel(sPoints, this);
+    numPoints = new QLabel(sNumPoints, this);
 
-  clear = new QPushButton("Clear", this);
-  add = new QPushButton("Add", this);
-  showGraph = new QPushButton("Show", this);
+    clear = new QPushButton("Clear", this);
+    add = new QPushButton("Add", this);
+    showGraph = new QPushButton("Show", this);
 
-  // Работа с меню
-  // Данные изображения мы будем использовать в качестве иконок в нашем меню
-  QPixmap openpix("C:\\Qt\\Apps\\QtApp\\open.png");
-  QPixmap savepix("C:\\Qt\\Apps\\QtApp\\save.png");
+    // Работа с меню
+    // Данные изображения мы будем использовать в качестве иконок в нашем меню
+    QPixmap openpix("C:\\Qt\\Apps\\QtApp\\open.png");
+    QPixmap savepix("C:\\Qt\\Apps\\QtApp\\save.png");
 
-  // Здесь в качестве первых аргументов мы используем конструкторы класса QAction
-  QAction *open = new QAction(openpix, "&Open", this);
-  QAction *save = new QAction(savepix, "&Save", this);
+    open = new QAction(openpix, "&Open", this);
+    save = new QAction(savepix, "&Save", this);
 
-  // А здесь мы задаем сочетание горячих клавиш CTRL+S, которое будет выполнять действие Save
-  save->setShortcut(tr("CTRL+S"));
+    // Здесь задаем сочетание горячих клавиш CTRL+S, которое будет выполнять действие Save
+    save->setShortcut(tr("CTRL+S"));
 
-  // В некоторых средах значки меню по умолчанию не отображаются, поэтому мы можем попробовать отключить атрибут Qt::AA_DontShowIconsInMenus
-  qApp->setAttribute(Qt::AA_DontShowIconsInMenus, false);
+    qApp->setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
-  connect(save, &QAction::triggered, this, &ListWidget::saveFile);
-  connect(open, &QAction::triggered, this, &ListWidget::openFile);
+    connect(save, &QAction::triggered, this, &MainWindow::saveFile);
+    connect(open, &QAction::triggered, this, &MainWindow::openFile);
 
+    menuBar = new QMenuBar();
+    fileMenu = new QMenu("&File");
 
-  QMenuBar* menuBar = new QMenuBar();
-  QMenu *fileMenu = new QMenu("&File");
-  menuBar->addMenu(fileMenu);
-  fileMenu->addAction(open);
-  fileMenu->addSeparator();
-  fileMenu->addAction(save);
+    menuBar->addMenu(fileMenu);
+    fileMenu->addAction(open);
+    fileMenu->addSeparator();
+    fileMenu->addAction(save);
 
-  this->layout()->setMenuBar(menuBar);
-  // Конец работы с меню
+    this->layout()->setMenuBar(menuBar);
+    // Конец работы с меню
 
-  vbox->addWidget(lw);
-  vbox->addSpacing(15);
+    vbox->addWidget(lw);
+    vbox->addSpacing(15);
 
-  QVBoxLayout *vbox1 = new QVBoxLayout(this);
+    vbox1 = new QVBoxLayout(this);
 
-  vbox1->setSpacing(3);
-  vbox1->addStretch(1);
-  vbox1->addWidget(clear);
-  vbox1->addWidget(add);
+    vbox1->setSpacing(3);
+    vbox1->addStretch(1);
+    vbox1->addWidget(clear);
+    vbox1->addWidget(add);
 
-  QVBoxLayout *vbox2 = new QVBoxLayout(this);
-  QHBoxLayout *hbox1 = new QHBoxLayout(this);
+    vbox2 = new QVBoxLayout(this);
+    hbox1 = new QHBoxLayout(this);
 
-  hbox1->addWidget(points);
-  hbox1->addWidget(numPoints);
+    hbox1->addWidget(points);
+    hbox1->addWidget(numPoints);
 
-  vbox2->setSpacing(3);
-  vbox2->addStretch(20);
-  vbox2->addLayout(hbox1);
-  vbox2->addStretch(1);
-  vbox2->addWidget(showGraph);
+    vbox2->setSpacing(3);
+    vbox2->addStretch(20);
+    vbox2->addLayout(hbox1);
 
-  hbox->addLayout(vbox1);
-  hbox->addLayout(vbox2);
-  vbox->addLayout(hbox);
+    vbox2->addStretch(1);
+    vbox2->addWidget(showGraph);
 
-  setLayout(vbox);
+    hbox->addLayout(vbox1);
+    hbox->addLayout(vbox2);
+    vbox->addLayout(hbox);
 
-  connect(clear, &QPushButton::clicked, this, &ListWidget::clearItem);
-  connect(add, &QPushButton::clicked, this, &ListWidget::addItem);
-  connect(showGraph, &QPushButton::clicked, this, &ListWidget::showItems);
+    setLayout(vbox);
 
-
+    connect(clear, &QPushButton::clicked, this, &MainWindow::clearItem);
+    connect(add, &QPushButton::clicked, this, &MainWindow::addItem);
+    connect(showGraph, &QPushButton::clicked, this, &MainWindow::showItems);
 }
 
-void ListWidget::saveFile()
+void MainWindow::saveFile()
 {
     QTextStream out(stdout);
-    QString filename = "C:\\Qt\\Apps\\QtApp\\save.txt";
+
+    QString filename = QInputDialog::getText(this, "Save", "Enter way to file (default save.txt):");
+
+    if (filename.isEmpty())
+        filename = "C:\\Qt\\Apps\\QtApp\\save.txt";
+
     QString textToSave, frst, scnd;
     QFile file(filename);
 
@@ -124,9 +123,14 @@ void ListWidget::saveFile()
     file.close();
 }
 
-void ListWidget::openFile()
+void MainWindow::openFile()
 {
-    QFile file("C:\\Qt\\Apps\\QtApp\\save.txt");
+    QString filename = QInputDialog::getText(this, "Open", "Enter way to file (default open.txt):");
+
+    if (filename.isEmpty())
+        filename = "C:\\Qt\\Apps\\QtApp\\save.txt";
+
+    QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly))
     {
@@ -150,13 +154,23 @@ void ListWidget::openFile()
 
         //проверка правильности записи координат в файле
         while (i < line.length())
-        {
+        {     
             while (line[i] != ' ')
             {
+                if (line[i] == ',') // обработка участка с запятой
+                {
+                    tmp.push_back(line[i]);
+                    i++;
+                    if (i == line.length())
+                        break;
+
+                    tmp.push_back(line[i]);
+                    i++;
+                    continue;
+                }
+
                 tmp.push_back(line[i]);
                 i++;
-                if (line.length() == i)
-                    break;
             }
 
             Coordinates *fileCoord = new Coordinates(tmp);
@@ -201,7 +215,7 @@ void ListWidget::openFile()
     file.close();
 }
 
-void ListWidget::addItem()
+void MainWindow::addItem()
 {
 
     QString c_text = QInputDialog::getText(this, "New point", "Enter new point");
@@ -237,7 +251,7 @@ void ListWidget::addItem()
     }
 }
 
-void ListWidget::clearItem()
+void MainWindow::clearItem()
 {
     listOfCoordinates.clear();
     text = "";
@@ -245,7 +259,7 @@ void ListWidget::clearItem()
     numPoints->setText("0");
 }
 
-void ListWidget::showItems()
+void MainWindow::showItems()
 {
     if (listOfCoordinates.isEmpty())
         return;
@@ -263,7 +277,7 @@ void ListWidget::showItems()
 
     for (auto iter = listOfCoordinates.begin(); iter != listOfCoordinates.end(); ++iter)
     {
-        tmp = '(' + frst.setNum(iter->first) + ',' + scnd.setNum(iter->second) + ") ";
+        tmp = '(' + frst.setNum(iter->first) + ", " + scnd.setNum(iter->second) + ") ";
 
         if (listOfCoordinates.size() % 10 == 0 && listOfCoordinates.size() > 0)
             tmp += '\n';
@@ -276,6 +290,8 @@ void ListWidget::showItems()
     numPoints->setText(sNumPoints);
 
     Frame* frame = new Frame(listOfCoordinates);
+    frame->setFrameStyle(QFrame::Box | QFrame::Plain);
+    frame->setStyleSheet("QFrame {background-color: white}");
 
     frame->resize(400, 400);
     frame->setWindowTitle("Frame");
