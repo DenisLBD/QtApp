@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QPainter>
+#include <QList>
 #include <QFrame>
 
 class Frame : public QFrame
