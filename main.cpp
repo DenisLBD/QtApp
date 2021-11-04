@@ -1,13 +1,14 @@
 #include <QApplication>
-#include "figure.h"
+#include "mainwindow.h"
 
 int main(int argc, char *argv[]) {
 
   QApplication app(argc, argv);
 
-  ListWidget window;
+  MainWindow window;
 
-  window.setWindowTitle("QListWidget");
+  window.resize(300, 350);
+  window.setWindowTitle("Main window");
   window.show();
 
   return app.exec();
