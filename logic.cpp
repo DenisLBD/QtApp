@@ -1,5 +1,5 @@
 #include "logic.h"
-#include <QList>
+
 
 Coordinates::Coordinates (QString str)
 {
@@ -24,6 +24,11 @@ bool Coordinates::CheckCoord()
         return false;
 
     if (coord[i] != ',')
+        return false;
+
+    i++;
+
+    if (coord[i] != ' ')
         return false;
 
     i++;
@@ -60,7 +65,7 @@ std::pair<int, int> Coordinates::GetCoord()
         i++;
     }
 
-    i++;
+    i += 2;
 
     while (coord[i].isDigit())
     {
@@ -83,12 +88,48 @@ std::pair<int, int> Coordinates::GetCoord()
 void Coordinates::removeCoords(QList<std::pair<int, int>> &listOfCoord)
 {
     bool flag = false; //лежит ли точка на прямой
+    bool vertical = false; // является ли прямая вертикалью
     double k = INT32_MAX;
+    int size = listOfCoord.size();
+    int i = 1;
+    int koef = 1; // +1 или -1 - направление вертикальной линии
+
+    auto iter1 = listOfCoord.begin();
     auto iter2 = listOfCoord.begin();
     ++iter2;
 
-    for (auto iter1 = listOfCoord.begin(); iter2 != listOfCoord.end(); ++iter1)
+    while (i <= size)
     {
+        if (iter1->first - iter2->first == 0 && vertical == false)
+        {
+            vertical = true;
+
+            if (iter2->second > iter1->second)
+                koef = 1;
+            else
+                koef = -1;
+
+            i++;
+            iter1++;
+            iter2++;
+
+            continue;
+        }
+        if (iter1->first - iter2->first == 0 && vertical == true)
+        {
+            if (iter2->second >= iter1->second && koef == 1)
+                listOfCoord.removeAt(i - 1);
+
+            if (iter2->second <= iter1->second && koef == -1)
+                listOfCoord.removeAt(i - 1);
+
+            i++;
+            iter1++;
+            iter2++;
+
+            continue;
+        }
+
         if (std::abs(k - (iter1->second - iter2->second)*1.0/(iter1->first - iter2->first)) < 0.00001)
             flag = true;
         else
@@ -98,12 +139,17 @@ void Coordinates::removeCoords(QList<std::pair<int, int>> &listOfCoord)
         {
             k = (iter1->second - iter2->second)*1.0/(iter1->first - iter2->first);
             ++iter2;
+            ++iter1;
+            vertical = false;
         }
         else
         {
-            listOfCoord.removeAt(listOfCoord.indexOf(iter1));
+            listOfCoord.removeAt(i - 1);
             iter1 = iter2;
             ++iter2;
+            ++iter1;
+            vertical = false;
         }
+        i++;
     }
 }
